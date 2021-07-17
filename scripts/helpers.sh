@@ -25,7 +25,11 @@ is_linux(){
 }
 
 is_freebsd() {
-    [ $(uname) == FreeBSD ]
+  [ $(uname) == FreeBSD ]
+}
+
+is_openbsd() {
+  [ $(uname) == OpenBSD ]  
 }
 
 command_exists() {

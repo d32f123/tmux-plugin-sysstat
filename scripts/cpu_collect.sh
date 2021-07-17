@@ -22,10 +22,13 @@ get_cpu_usage() {
         | sed -u -nr '/CPU usage/s/.*,[[:space:]]*([0-9]+[.,][0-9]*)%[[:space:]]*idle.*/\1/p' \
         | stdbuf -o0 awk '{ print 100-$0 }'
     fi
-  elif ! command_exists "vmstat"; then
+  elif command_exists "vmstat"; then
     if is_freebsd; then
       vmstat -n "$refresh_interval" -c "$samples_count" \
         | stdbuf -o0 awk 'NR>2 {print 100-$(NF-0)}'
+    elif is_openbsd; then
+      vmstat -w "$refresh_interval" -c "$samples_count" \
+        | gstdbuf -o0 awk 'NR>2 {print 100-$(NF-0)}'
     else
       vmstat -n "$refresh_interval" "$samples_count" \
         | stdbuf -o0 awk 'NR>2 {print 100-$(NF-2)}'
@@ -35,6 +38,10 @@ get_cpu_usage() {
       top -d"$samples_count" \
         | sed -u -nr '/CPU:/s/.*,[[:space:]]*([0-9]+[.,][0-9]*)%[[:space:]]*id.*/\1/p' \
         | stdbuf -o0 awk '{ print 100-$0 }'
+    elif is_openbsd; then
+      top -d"$samples_count" \
+        | sed -u -nr '/CPU:/s/.*,[[:space:]]*([0-9]+[.,][0-9]*)%[[:space:]]*id.*/\1/p' \
+        | gstdbuf -o0 awk '{ print 100-$0 }'
     else
       top -b -n "$samples_count" -d "$refresh_interval" \
         | sed -u -nr '/%Cpu/s/.*,[[:space:]]*([0-9]+[.,][0-9]*)[[:space:]]*id.*/\1/p' \

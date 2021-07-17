@@ -42,6 +42,8 @@ print_mem() {
     mem_usage=$(get_mem_usage_linux)
   elif is_freebsd; then
     mem_usage=$(get_mem_usage_freebsd)
+  elif is_openbsd; then
+    mem_usage=$(get_mem_usage_openbsd)
   fi
 
   local size_scale="$(get_size_scale_factor "$size_unit")"
@@ -99,6 +101,10 @@ get_mem_usage_osx(){
 # Relies on vmstat, but could also be done with top on FreeBSD
 get_mem_usage_freebsd(){
   vmstat -H | tail -n 1 | awk '{ print $5, $4 }'
+}
+
+get_mem_usage_openbsd() {
+  vmstat | tail -n 1 |  awk '{ print $4, $3 }' | xargs gnumfmt --from auto --to-unit=K
 }
 
 # Method #1. Sum up free+buffers+cached, treat it as "available" memory, assuming buff+cache can be reclaimed. Note, that this assumption is not 100% correct, buff+cache most likely cannot be 100% reclaimed, but this is how memory calculation is used to be done on Linux
